@@ -4,19 +4,24 @@ import {
   onMounted,
 } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
+
+//預設滙入
+import Pagination from './components/pagination.js';
+
+const apiUrl = "https://vue3-course-api.hexschool.io/v2";
+const apiPath = "charlotte-lee849";
+
 let productModal = null;
 let delProductModal = null;
 
-const app = createApp({
-  setup() {
-    const apiUrl = "https://vue3-course-api.hexschool.io/v2";
-    const apiPath = "charlotte-lee849";
+const app = createApp({    
+  setup() {    
     const products = ref([]);
     const isNew = ref(false);
     const tempProduct = ref({
       imagesUrl: [],
     });
-    const pagination = ref({});
+    const paginationRef = ref({});
 
     const checkAdmin = () => {
       const url = `${apiUrl}/api/user/check`;
@@ -37,7 +42,7 @@ const app = createApp({
         .get(url)
         .then((res) => {
           products.value = res.data.products;
-          pagination.value = res.data.pagination;
+          paginationRef.value = res.data.pagination;
         })
         .catch((err) => {
           alert(err.response.data.message);
@@ -70,34 +75,21 @@ const app = createApp({
 
     return {
       products,      
-      tempProduct,
-      pagination,
+      tempProduct,      
       isNew,
+      pagination: paginationRef,
       getData,
       openModal,      
     };
   },
 });
 
-app.component("pagination", {
-  template: "#pagination",
-  props: ["pages"],
-  setup(props, { emit }) {
-    const emitPages = (page) => {
-      emit("emit-pages", page);
-    };
-    return {
-      emitPages,
-    };
-  },
-});
+app.component('pagination', Pagination);
 
 app.component("productModal", {
   template: "#productModal",
   props: ["tempProduct", "isNew"],
   setup(props, { emit }) {
-    const apiUrl = "https://vue3-course-api.hexschool.io/v2";
-    const apiPath = "charlotte-lee849";
 
     const updateProduct = () => {
       let url = `${apiUrl}/api/${apiPath}/admin/product`;
@@ -114,12 +106,12 @@ app.component("productModal", {
           emit("get-data");
         })
         .catch((err) => {
-          alert(err.response.message);
+          alert(err.response.data.message);  // 沒填到必填的欄位需要出現 alert 提示訊息
         });
     };
     const createImages = () => {
-      props.value.imagesUrl = [];
-      props.value.imagesUrl.push();
+      props.tempProduct.imagesUrl = [];
+      props.tempProduct.imagesUrl.push();
     };
     onMounted(() => {
       productModal = new bootstrap.Modal(
@@ -137,12 +129,11 @@ app.component("productModal", {
   },
 });
 
+
 app.component("delProductModal", {
   template: "#delProductModal",
   props: ["tempProduct"],
   setup(props, { emit }) {
-    const apiUrl = "https://vue3-course-api.hexschool.io/v2";
-    const apiPath = "charlotte-lee849";
 
     const delProduct = () => {
       const url = `${apiUrl}/api/${apiPath}/admin/product/${props.tempProduct.id}`;
@@ -165,7 +156,7 @@ app.component("delProductModal", {
       );
     });
 
-    return {
+    return {      
       delProduct,
       openModal,
     }
